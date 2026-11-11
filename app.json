@@ -1,0 +1,68 @@
+{
+  "name": "LearnMate",
+  "description": "AI-powered career guidance agent that helps students discover career paths and build personalized learning roadmaps. Powered by IBM watsonx.ai.",
+  "repository": "https://github.com/vijay07D/learnmate",
+  "logo": "https://raw.githubusercontent.com/vijay07D/learnmate/main/docs/logo.png",
+  "keywords": [
+    "ai",
+    "career-guidance",
+    "ibm-watsonx",
+    "education",
+    "student",
+    "roadmap",
+    "nodejs",
+    "typescript",
+    "react"
+  ],
+  "website": "https://github.com/vijay07D/learnmate",
+  "success_url": "/",
+  "scripts": {
+    "postdeploy": "echo LearnMate deployed successfully"
+  },
+  "env": {
+    "IBM_CLOUD_API_KEY": {
+      "description": "IBM Cloud API key with access to watsonx.ai. Get it from cloud.ibm.com → IAM → API keys.",
+      "required": false
+    },
+    "IBM_WATSONX_PROJECT_ID": {
+      "description": "Your watsonx.ai project ID. Found in your project settings on dataplatform.cloud.ibm.com.",
+      "required": false
+    },
+    "IBM_WATSONX_URL": {
+      "description": "watsonx.ai endpoint URL for your region. e.g. https://au-syd.ml.cloud.ibm.com",
+      "value": "https://au-syd.ml.cloud.ibm.com",
+      "required": false
+    },
+    "IBM_GRANITE_MODEL_ID": {
+      "description": "Model ID to use on watsonx.ai.",
+      "value": "meta-llama/llama-3-3-70b-instruct",
+      "required": false
+    },
+    "DEMO_MODE": {
+      "description": "Set to 'true' to force demo mode (uses sample data, no IBM credentials needed). Leave blank to auto-detect from credentials.",
+      "value": "",
+      "required": false
+    },
+    "NODE_ENV": {
+      "description": "Set to 'production' to serve the built React frontend from Express on a single port.",
+      "value": "production",
+      "required": false
+    },
+    "PORT": {
+      "description": "Port the server listens on. Heroku sets this automatically.",
+      "required": false
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "stack": "heroku-24"
+}

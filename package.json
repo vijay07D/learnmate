@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "description": "LearnMate — AI career guidance agent powered by IBM watsonx.ai",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
+    "build": "npm install --prefix frontend && npm install --prefix backend && npm run build --prefix frontend && npm run build --prefix backend",
+    "start": "NODE_ENV=production node backend/dist/index.js",
     "dev": "concurrently --names \"backend,frontend\" --prefix-colors \"cyan,magenta\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
-    "build": "npm run build --prefix frontend && npm run build --prefix backend",
-    "start": "npm run start --prefix backend",
     "install:all": "npm install --prefix backend && npm install --prefix frontend"
   },
   "devDependencies": {
