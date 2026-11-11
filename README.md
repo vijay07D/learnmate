@@ -1,330 +1,170 @@
-# LearnMate — AI Agent for Personalized Career Discovery
+﻿# LearnMate — AI Career Guidance Agent
 
-> IBM SkillsBuild University Education · Proof of Concept
+> An AI agent that helps students discover career paths and build personalized learning roadmaps.
+> Built with IBM watsonx.ai · Node.js · React · TypeScript
 
-LearnMate is a conversational AI agent that helps students discover career paths, understand skill gaps, and build personalized learning roadmaps — powered by **IBM Granite** via watsonx.ai.
-
----
-
-## Table of Contents
-
-1. [Architecture](#architecture)
-2. [Stack and Technology Choices](#stack)
-3. [IBM Granite Configuration](#ibm-granite)
-4. [IBM Cloud Lite Setup](#ibm-cloud-lite)
-5. [Environment Variables](#environment-variables)
-6. [Demo Mode](#demo-mode)
-7. [Local Run Instructions](#local-run)
-8. [Project Structure](#project-structure)
-9. [Agent Workflow](#agent-workflow)
-10. [Responsible AI](#responsible-ai)
-11. [Submission Materials](#submission-materials)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/vijay07D/learnmate)
 
 ---
 
-## Architecture
+## 🚀 Quickstart for Evaluators
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                      Student Browser                     │
-│  React SPA (Vite, TypeScript)                           │
-│  Pages: Landing, Chat, Dashboard, Careers, Roadmap,     │
-│         Profile                                         │
-└────────────────────┬────────────────────────────────────┘
-                     │ HTTP /api/*
-┌────────────────────▼────────────────────────────────────┐
-│              LearnMate Backend (Express / Node)          │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │              AI Agent State Machine              │   │
-│  │  onboarding → career_discovery → career_detail  │   │
-│  │  → skill_gap → roadmap → checkin → (loop)       │   │
-│  └──────────────┬──────────────────────────────────┘   │
-│                 │                                        │
-│  ┌──────────────▼──────────────────────────────────┐   │
-│  │  Responsible AI Controls                         │   │
-│  │  - JSON validation of AI outputs                 │   │
-│  │  - No silent state changes                       │   │
-│  │  - Revision approval before applying             │   │
-│  │  - Demo mode fallback with clear labels          │   │
-│  └──────────────┬──────────────────────────────────┘   │
-│                 │                                        │
-│  ┌──────────────▼────────┐  ┌─────────────────────┐    │
-│  │  IBM Granite           │  │  Persistence        │    │
-│  │  (watsonx.ai REST API) │  │  (JSON files/demo)  │    │
-│  │  - Onboarding Q&A      │  │  Ready for Cloudant │    │
-│  │  - Career matching     │  └─────────────────────┘    │
-│  │  - Skill gap analysis  │                              │
-│  │  - Roadmap generation  │                              │
-│  │  - Check-in responses  │                              │
-│  └────────────────────────┘                              │
-└─────────────────────────────────────────────────────────┘
+> **No IBM account needed to evaluate.** The app runs in Demo Mode automatically — all features work with sample AI responses clearly labeled as demo data.
+
+### Option A — Run locally (5 minutes)
+
+**Requirements:** Node.js 18+ installed ([nodejs.org](https://nodejs.org))
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/vijay07D/learnmate.git
+cd learnmate
+
+# 2. Install dependencies
+npm install --prefix backend
+npm install --prefix frontend
+
+# 3. Copy environment file (leave IBM fields blank = demo mode)
+cp backend/.env.example backend/.env
+
+# 4. Build and start (single port, no config needed)
+npm run build
+npm start --prefix backend
 ```
 
-**Progress feedback loop:** When a student completes a milestone, the agent runs a check-in, collects feedback, and proposes a roadmap revision. The student must explicitly accept or reject any change before it is applied.
+Open **http://localhost:3001** — the full app runs on one port.
+
+> On Windows PowerShell, prefix every npm command with:
+> `Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force`
 
 ---
 
-## Stack
+### Option B — Deploy to Heroku (one click)
 
-| Layer | Technology | Reason |
-|---|---|---|
-| Backend | Node.js + Express (TypeScript) | Lightweight, widely understood, minimal dependencies |
-| Frontend | React + Vite (TypeScript) | Fast dev experience, strong typing |
-| AI | IBM Granite 13B Instruct via watsonx.ai REST API | Specified IBM requirement; no SDK needed |
-| Persistence | Local JSON files (demo) / IBM Cloudant (production) | Zero-setup demo; Cloudant is IBM Cloud Lite-compatible |
-| Auth | None (demo profile per browser localStorage) | Not required for POC; data model is auth-ready |
+Click the **Deploy to Heroku** button above. Add your IBM credentials in the form (or leave blank for demo mode). Heroku builds and deploys automatically.
 
 ---
 
-## IBM Granite Configuration
+## ✨ What the app does
 
-LearnMate calls IBM Granite through the **watsonx.ai text generation REST API** (`/ml/v1/text/generation`).
+LearnMate is a **conversational AI agent** (not a form or quiz) that guides students through a 7-step journey:
 
-### To connect real IBM Granite:
+| Step | What happens |
+|---|---|
+| 1 | Chat asks about your **interests and hobbies** |
+| 2 | Chat asks about your **skills and strengths** |
+| 3 | Shows **broad career options** across 9 fields including non-obvious paths |
+| 4 | Asks for your **course and year of study** |
+| 5 | **Filters and re-explains** careers for your education background |
+| 6 | Asks which career interests you and what your **goals** are |
+| 7 | Generates a **personalized learning roadmap** with skills, resources, projects and milestones |
+| Ongoing | **Progress check-ins** — proposes roadmap adjustments, you approve or reject |
 
-1. **Create an IBM Cloud account** (Lite tier is sufficient for POC)
-2. **Provision watsonx.ai** in your region (e.g. us-south)
-3. **Create a project** in watsonx.ai and note the Project ID
-4. **Generate an IBM Cloud API key** (IAM → API keys)
-5. Copy `learnmate/backend/.env.example` → `learnmate/backend/.env`
-6. Fill in:
+---
+
+## 🤖 IBM watsonx.ai Integration
+
+LearnMate calls IBM watsonx.ai directly via REST API (no SDK) using the `meta-llama/llama-3-3-70b-instruct` model available on the IBM Cloud Lite plan.
+
+| Feature | What the AI does |
+|---|---|
+| Onboarding | Generates follow-up questions based on student answers |
+| Career matching | Selects careers from catalog + writes personalized fit reasons |
+| Education filtering | Re-explains careers based on program and year of study |
+| Skill gap analysis | Compares student profile to career requirements |
+| Roadmap generation | Creates sequenced learning plan in JSON |
+| Check-in responses | Adapts and proposes roadmap changes conversationally |
+
+### Connect real IBM watsonx.ai
+
+1. Create a free IBM Cloud account at [cloud.ibm.com](https://cloud.ibm.com)
+2. Provision **watsonx.ai** → create a project → note your Project ID
+3. Associate **Watson AI Runtime** with the project (Manage → Services & integrations)
+4. Generate an API key (IAM → API keys)
+5. Edit `backend/.env`:
 
 ```env
 IBM_CLOUD_API_KEY=your_api_key_here
 IBM_WATSONX_PROJECT_ID=your_project_id_here
-IBM_WATSONX_URL=https://us-south.ml.cloud.ibm.com
-IBM_GRANITE_MODEL_ID=ibm/granite-13b-instruct-v2
+IBM_WATSONX_URL=https://au-syd.ml.cloud.ibm.com
+IBM_GRANITE_MODEL_ID=meta-llama/llama-3-3-70b-instruct
 ```
 
-The backend authenticates via IBM IAM token exchange (no SDK required), caches the IAM token, and calls the Granite generation endpoint directly.
-
-### Granite model used
-
-`ibm/granite-13b-instruct-v2` — IBM's instruction-following model, suitable for conversational agents, structured JSON generation, and text summarization.
-
-### What Granite is used for
-
-| Feature | Granite task |
-|---|---|
-| Onboarding | Conversational follow-up questions based on student profile |
-| Career matching | JSON selection + fit reason from career catalog |
-| Skill gap | JSON analysis of profile vs. career requirements |
-| Roadmap generation | JSON structured learning plan |
-| Check-in response | Conversational adaptation and revision proposal |
+Restart the server — it switches from ⚠️ DEMO to ✅ LIVE automatically.
 
 ---
 
-## IBM Cloud Lite Setup
-
-LearnMate is designed to run on **IBM Cloud Lite** (free tier):
-
-| Service | IBM Cloud Lite option |
-|---|---|
-| watsonx.ai | Available on Lite plan (capacity units) |
-| Backend hosting | IBM Code Engine (free tier: 50 vCPU hours/month) |
-| Persistence | IBM Cloudant (Lite: 1GB, 20 r/s) |
-
-### To deploy backend to IBM Code Engine:
+## 🖥 Running in development (two terminals, hot-reload)
 
 ```bash
-ibmcloud ce application create \
-  --name learnmate-backend \
-  --image icr.io/your-namespace/learnmate-backend \
-  --env IBM_CLOUD_API_KEY=... \
-  --env IBM_WATSONX_PROJECT_ID=... \
-  --port 3001
-```
-
-### To switch from JSON files to IBM Cloudant:
-
-Replace `learnmate/backend/src/persistence.ts` with a Cloudant implementation using the `@ibm-cloud/cloudant` Node.js SDK. The interface (`saveSession`, `loadSession`, `deleteSession`) is unchanged.
-
----
-
-## Environment Variables
-
-| Variable | Required | Description |
-|---|---|---|
-| `IBM_CLOUD_API_KEY` | For live mode | IBM Cloud API key with watsonx.ai access |
-| `IBM_WATSONX_PROJECT_ID` | For live mode | watsonx.ai project ID |
-| `IBM_WATSONX_URL` | Optional | watsonx.ai endpoint (default: us-south) |
-| `IBM_GRANITE_MODEL_ID` | Optional | Granite model ID (default: granite-13b-instruct-v2) |
-| `PORT` | Optional | Backend port (default: 3001) |
-| `DEMO_MODE` | Optional | Force demo mode even with credentials (default: auto) |
-| `NODE_ENV` | Optional | `development` or `production` |
-
----
-
-## Demo Mode
-
-LearnMate **automatically runs in demo mode** when `IBM_CLOUD_API_KEY` or `IBM_WATSONX_PROJECT_ID` are absent.
-
-In demo mode:
-- All AI responses use pre-written sample data from `src/demoResponses.ts`
-- A visible **"⚠ Demo Mode"** banner appears in the navbar and chat
-- The agent workflow, state machine, UI, and persistence all function normally
-- **Demo mode is clearly labeled throughout the app and is not represented as a live IBM integration**
-
-To force demo mode (useful for presentations without credentials):
-```env
-DEMO_MODE=true
-```
-
----
-
-## Local Run Instructions
-
-### Prerequisites
-
-- Node.js 18+ and npm
-- (Optional) IBM Cloud credentials for live Granite mode
-
-### 1. Install backend dependencies
-
-```bash
-cd learnmate/backend
-npm install
-```
-
-### 2. Configure environment
-
-```bash
-cp .env.example .env
-# Edit .env — leave IBM fields empty to run in demo mode
-```
-
-### 3. Start the backend
-
-```bash
+# From the learnmate/ root — starts both servers together
 npm run dev
-# Runs on http://localhost:3001
-# Shows: ⚠️ DEMO (IBM Granite not connected) or ✅ LIVE (IBM Granite connected)
 ```
 
-### 4. Install frontend dependencies
-
-```bash
-cd ../frontend
-npm install
-```
-
-### 5. Start the frontend
-
-```bash
-npm run dev
-# Runs on http://localhost:5173
-# Proxies /api/* to backend automatically
-```
-
-### 6. Open the app
-
-Navigate to **http://localhost:5173** and click "Start my journey".
-
-### Type checking (CI)
-
-```bash
-# Backend
-cd learnmate/backend && npm run typecheck
-
-# Frontend
-cd learnmate/frontend && npm run typecheck
-```
+- Frontend (React + Vite): **http://localhost:5173**
+- Backend API: http://localhost:3001
 
 ---
 
-## Project Structure
+## 📁 Project structure
 
 ```
 learnmate/
 ├── backend/
-│   ├── src/
-│   │   ├── index.ts          # Express app entry point
-│   │   ├── routes.ts         # All API routes
-│   │   ├── agent.ts          # AI agent state machine
-│   │   ├── granite.ts        # IBM Granite / watsonx.ai integration
-│   │   ├── prompts.ts        # Granite prompt templates
-│   │   ├── demoResponses.ts  # Demo mode responses (no Granite)
-│   │   ├── careerCatalog.ts  # 10-career diverse catalog
-│   │   ├── persistence.ts    # JSON file persistence (Cloudant-ready)
-│   │   └── types.ts          # Shared TypeScript types
-│   ├── .env.example
-│   ├── package.json
-│   └── tsconfig.json
+│   └── src/
+│       ├── agent.ts          # 7-step AI agent state machine
+│       ├── granite.ts        # IBM watsonx.ai REST API integration
+│       ├── prompts.ts        # Prompt templates
+│       ├── demoResponses.ts  # Demo mode fallback responses
+│       ├── careerCatalog.ts  # 16-career diverse catalog (9 fields)
+│       ├── routes.ts         # Express API routes
+│       ├── persistence.ts    # JSON file session storage
+│       └── types.ts          # Shared TypeScript types
 ├── frontend/
-│   ├── src/
-│   │   ├── App.tsx           # Router and layout
-│   │   ├── main.tsx          # React entry point
-│   │   ├── index.css         # Global styles
-│   │   ├── components/
-│   │   │   ├── Navbar.tsx
-│   │   │   ├── ChatMessage.tsx
-│   │   │   ├── CareerCard.tsx
-│   │   │   └── RoadmapStepCard.tsx
-│   │   ├── pages/
-│   │   │   ├── Landing.tsx
-│   │   │   ├── Chat.tsx
-│   │   │   ├── Dashboard.tsx
-│   │   │   ├── CareerExplore.tsx
-│   │   │   ├── RoadmapPage.tsx
-│   │   │   └── ProfilePage.tsx
-│   │   ├── hooks/
-│   │   │   └── useSession.tsx  # Session context + API calls
-│   │   ├── types/
-│   │   │   └── index.ts
-│   │   └── utils/
-│   │       └── api.ts          # Backend API client
-│   ├── index.html
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── vite.config.ts
-├── data/                       # Session JSON files (auto-created)
-├── docs/
-│   ├── ARCHITECTURE.md
-│   ├── PRESENTATION_OUTLINE.md
-│   └── DEMO_SCRIPT.md
-└── README.md
+│   └── src/
+│       ├── pages/            # Landing, Chat, Dashboard, Careers, Roadmap, Profile
+│       ├── components/       # ChatMessage, CareerCard, RoadmapStepCard, Navbar
+│       ├── hooks/            # useSession (session context + API calls)
+│       └── utils/api.ts      # Backend API client
+├── app.json                  # Heroku deployment manifest
+├── Procfile                  # Heroku process definition
+└── docs/ARCHITECTURE.md      # Detailed architecture notes
 ```
 
 ---
 
-## Agent Workflow
+## 🛡 Responsible AI
 
-The agent is implemented as an **explicit state machine** in `agent.ts`:
-
-```
-onboarding ──→ career_discovery ──→ career_detail
-                                         │
-                                      skill_gap
-                                         │
-                                       roadmap ←──┐
-                                         │         │
-                                       checkin ────┘
-                                    (propose revision)
-                                    (student approves/rejects)
-```
-
-Each state has a dedicated handler function. State transitions are explicit. The agent **never silently changes major decisions** — roadmap revisions are proposed and require student approval.
+- Every career recommendation includes a clear **reason based on your profile**
+- The agent **never silently changes your roadmap** — all revisions require your approval
+- No demographic inference — matching uses only interests, skills, and goals
+- Resources are described as **topic areas and search phrases**, not invented URLs
+- LearnMate **does not promise** employment, income, or admission to any program
+- Demo vs. live AI mode is always **clearly labeled** in the UI
 
 ---
 
-## Responsible AI
+## ⚙️ Environment variables
 
-| Principle | Implementation |
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `IBM_CLOUD_API_KEY` | Live mode only | — | IBM Cloud API key |
+| `IBM_WATSONX_PROJECT_ID` | Live mode only | — | watsonx.ai project ID |
+| `IBM_WATSONX_URL` | No | `https://au-syd.ml.cloud.ibm.com` | Regional endpoint |
+| `IBM_GRANITE_MODEL_ID` | No | `meta-llama/llama-3-3-70b-instruct` | Model ID |
+| `NODE_ENV` | No | `development` | Set to `production` for single-port mode |
+| `PORT` | No | `3001` | Server port |
+| `DEMO_MODE` | No | auto | Force demo mode (`true`) |
+
+---
+
+## 🔧 Tech stack
+
+| Layer | Technology |
 |---|---|
-| Student decides | Agent advises; all career and roadmap decisions require student action |
-| Explained recommendations | Every career match includes a `fitReason` explaining why it fits |
-| No stereotyping | Career matching uses interests, skills, and goals only — no demographic inference |
-| Minimal data collection | Only profile fields needed for personalization are stored |
-| Editable profile | Full profile editing on the Profile page |
-| No invented resources | Resources are topic areas and search phrases, not specific URLs or certifications |
-| No false promises | UI includes responsible AI disclaimers throughout |
-| Transparent AI mode | Demo vs. live mode is always clearly labeled |
-
----
-
-## Submission Materials
-
-- `docs/ARCHITECTURE.md` — Architecture diagram (text + Mermaid)
-- `docs/PRESENTATION_OUTLINE.md` — Slide-by-slide PowerPoint outline
-- `docs/DEMO_SCRIPT.md` — Full demo walkthrough script
+| Backend | Node.js 18 + Express 4 + TypeScript |
+| Frontend | React 18 + Vite 5 + TypeScript |
+| AI | IBM watsonx.ai REST API (direct HTTPS, no SDK) |
+| Agent | Hand-written state machine (no LangChain / LangFlow) |
+| Persistence | JSON files (local) — interface is Cloudant-ready |
+| Deployment | Single Express server serves built React app |
